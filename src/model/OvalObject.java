@@ -1,5 +1,7 @@
 package model;
 
+import view.LabelShape;
+
 import java.awt.*;
 
 public class OvalObject extends BasicObject {
@@ -22,6 +24,21 @@ public class OvalObject extends BasicObject {
                 g.fillRect(pt.x - 3, pt.y - 3, 6, 6);
             }
         }
+        // 繪製 label
+        if (!label.isEmpty()) {
+            g.setFont(new Font("SansSerif", Font.PLAIN, fontSize));
+            g.setColor(labelColor);
+            // 根據 labelShape 繪製不同背景
+            if (labelShape == LabelShape.RECTANGLE) {
+                g.fillRect(x, y - fontSize, g.getFontMetrics().stringWidth(label), fontSize);
+            } else if (labelShape == LabelShape.OVAL) {
+                g.fillOval(x, y - fontSize, g.getFontMetrics().stringWidth(label), fontSize);
+            }
+            g.setColor(Color.BLACK);
+            g.drawString(label, x, y - 2);
+        }
+
+
     }
 
     @Override
