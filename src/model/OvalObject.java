@@ -13,7 +13,7 @@ public class OvalObject extends BasicObject {
     @Override
     public void draw(Graphics g) {
         // 繪製橢圓
-        g.setColor(Color.RED);
+        g.setColor(Color.BLACK);
         g.drawOval(x, y, width, height);
 
         // 若要顯示 ports，畫出 4 個小方塊

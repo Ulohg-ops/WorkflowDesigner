@@ -13,8 +13,14 @@ public class RectObject extends BasicObject {
     @Override
     public void draw(Graphics g) {
         // 繪製矩形
-        g.setColor(Color.BLUE);
+        g.setColor(Color.BLACK);
         g.drawRect(x, y, width, height);
+
+        int line1Y = y + height / 3;
+        int line2Y = y + (2 * height / 3);
+
+        g.drawLine(x, line1Y, x + width, line1Y);
+        g.drawLine(x, line2Y, x + width, line2Y);
 
         // 若要顯示 ports，畫出 8 個小方塊
         if (showPorts) {

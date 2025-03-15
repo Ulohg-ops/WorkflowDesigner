@@ -31,8 +31,8 @@ public class Canvas extends JPanel {
     // 記錄各選取物件的原始位置（物件左上角）
     private Map<BasicObject, Point> initialPositions = new HashMap<>();
 
-    private static final int DEFAULT_WIDTH = 80;
-    private static final int DEFAULT_HEIGHT = 60;
+    private static final int DEFAULT_WIDTH = 120;
+    private static final int DEFAULT_HEIGHT = 80;
 
     public Canvas(ToolPanel toolPanel) {
         this.toolPanel = toolPanel;
@@ -105,8 +105,23 @@ public class Canvas extends JPanel {
                     BasicObject endObj = findObjectAt(e.getPoint());
                     if (endObj != null && endObj != linkStartObject) {
                         Point endPort = endObj.getClosestPort(e.getPoint());
-                        LinkObject link = new LinkObject(linkStartObject, endObj, linkStartPoint, endPort, mode);
-                        links.add(link);
+                        LinkObject link = null;
+                        switch (mode) {
+                            case ASSOCIATION:
+                                link = new AssociationLink(linkStartObject, endObj, linkStartPoint, endPort);
+                                break;
+                            case GENERALIZATION:
+                                link = new GeneralizationLink(linkStartObject, endObj, linkStartPoint, endPort);
+                                break;
+                            case COMPOSITION:
+                                link = new CompositionLink(linkStartObject, endObj, linkStartPoint, endPort);
+                                break;
+                            default:
+                                break;
+                        }
+                        if (link != null) {
+                            links.add(link);
+                        }
                     }
                     isLinkDragging = false;
                     linkStartObject = null;
@@ -115,7 +130,7 @@ public class Canvas extends JPanel {
                     repaint();
                 } else if (mode == Mode.SELECT) {
                     if (isGroupDragging) {
-                        // 群組拖曳結束：更新每個移動物件的連線端點（使用儲存的偏移量方式）
+                        // 群組拖曳結束：更新每個移動物件的連線端點（使用記錄的偏移量方式）
                         for (BasicObject obj : selectedObjects) {
                             updateLinksForObject(obj);
                         }
@@ -142,7 +157,7 @@ public class Canvas extends JPanel {
                                 obj.setShowPorts(false);
                             }
                         }
-                        // 若無物件完全包含於選取矩形，則清除所有選取
+                        // 若選取矩形內無物件則取消所有選取
                         if (!anySelected) {
                             for (BasicObject obj : objects) {
                                 obj.setShowPorts(false);
@@ -154,6 +169,7 @@ public class Canvas extends JPanel {
                     }
                 }
             }
+
         });
 
         addMouseMotionListener(new MouseMotionAdapter() {
