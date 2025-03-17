@@ -13,6 +13,9 @@ public class OvalObject extends BasicObject {
     @Override
     public void draw(Graphics g) {
         // 繪製橢圓
+        g.setColor(Color.decode("#F6F0F0"));
+        g.fillOval(x, y, width, height);
+
         g.setColor(Color.BLACK);
         g.drawOval(x, y, width, height);
 

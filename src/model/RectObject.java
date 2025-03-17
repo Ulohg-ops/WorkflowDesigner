@@ -13,6 +13,10 @@ public class RectObject extends BasicObject {
     @Override
     public void draw(Graphics g) {
         // 繪製矩形
+
+        g.setColor(Color.decode("#F6F0F0"));
+        g.fillRect(x, y, width, height);
+
         g.setColor(Color.BLACK);
         g.drawRect(x, y, width, height);
 

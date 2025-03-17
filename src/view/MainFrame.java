@@ -1,9 +1,11 @@
 package view;
 
 import model.BasicObject;
-import java.util.List;
+import model.CanvasModel;
+
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 public class MainFrame extends JFrame {
 
@@ -15,22 +17,28 @@ public class MainFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // 建立 ToolPanel (左側)
+        // 1. 建立 ToolPanel (左側)
         toolPanel = new ToolPanel();
         add(toolPanel, BorderLayout.WEST);
 
-        // 建立 Canvas (中央)，將 toolPanel 傳進去以便取得當前模式
-        canvas = new Canvas(toolPanel);
+        // 2. 建立 Model
+        CanvasModel model = new CanvasModel();
+
+        // 3. 建立 Canvas (中央)，傳入 toolPanel & model
+        canvas = new Canvas(toolPanel, model);
         add(canvas, BorderLayout.CENTER);
 
-        // 建立功能選單 (上方)
+        // 4. 建立功能選單 (上方)
         setJMenuBar(createMenuBar());
 
-
+        // 視窗大小 & 位置
         setSize(800, 600);
         setLocationRelativeTo(null);
     }
 
+    /**
+     * 建立選單列 (JMenuBar)
+     */
     private JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
 
@@ -47,15 +55,19 @@ public class MainFrame extends JFrame {
         JMenuItem unGroupItem = new JMenuItem("Ungroup");
         JMenuItem customLabelItem = new JMenuItem("Custom Label Style");
 
+        // 群組
         groupItem.addActionListener(e -> canvas.groupSelectedObjects());
+        // 解群組
         unGroupItem.addActionListener(e -> canvas.ungroupSelectedObject());
 
+        // 自訂標籤樣式
         customLabelItem.addActionListener(e -> {
             // 取得目前選取的物件
             List<BasicObject> selected = canvas.getSelectedObjects();
             if (selected.size() == 1) {
                 BasicObject obj = selected.get(0);
-                // 建立並顯示 CustomLabelDialog，傳入 MainFrame 作為 owner
+
+                // 彈出自訂標籤對話框
                 CustomLabelDialog dialog = new CustomLabelDialog(
                         MainFrame.this,
                         obj.getLabel(),
@@ -64,8 +76,9 @@ public class MainFrame extends JFrame {
                         obj.getFontSize()
                 );
                 dialog.setVisible(true);
+
+                // 如果按下 OK，更新該物件的 Label 設定
                 if (dialog.isConfirmed()) {
-                    // 更新物件的 Label 設定
                     obj.setLabel(dialog.getLabelName());
                     obj.setLabelShape(dialog.getLabelShape());
                     obj.setLabelColor(dialog.getChosenColor());
@@ -73,13 +86,16 @@ public class MainFrame extends JFrame {
                     canvas.repaint();
                 }
             } else {
-                JOptionPane.showMessageDialog(MainFrame.this, "請先選取一個物件", "提示", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(
+                        MainFrame.this,
+                        "請先選取一個物件",
+                        "提示",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
             }
         });
 
-
-
-        // 這裡可註冊事件或呼叫對應的 controller 方法
+        // 將選單項目加入 Edit Menu
         editMenu.add(groupItem);
         editMenu.add(unGroupItem);
         editMenu.add(customLabelItem);
@@ -87,8 +103,6 @@ public class MainFrame extends JFrame {
 
         return menuBar;
     }
-
-
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {

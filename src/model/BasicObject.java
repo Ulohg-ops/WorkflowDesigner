@@ -10,7 +10,13 @@ public abstract class BasicObject {
     public int width;
     public int height;
     protected int depth; // depth 值，0 ~ 99，數字越小表示越在最上層
-    protected boolean showPorts = false;  // 是否顯示連接埠
+    protected boolean showPorts = false;
+
+
+    protected String label = "";
+    protected LabelShape labelShape = LabelShape.RECTANGLE;
+    protected Color labelColor = Color.WHITE;
+    protected int fontSize = 12;
 
     public BasicObject(int x, int y, int width, int height) {
         this.x = x;
@@ -53,11 +59,6 @@ public abstract class BasicObject {
         }
         return closest;
     }
-    // 在 BasicObject.java 中新增：
-    protected String label = "";
-    protected LabelShape labelShape = LabelShape.RECTANGLE;
-    protected Color labelColor = Color.WHITE;
-    protected int fontSize = 12;
 
     public String getLabel() {
         return label;
@@ -90,5 +91,16 @@ public abstract class BasicObject {
     public void setFontSize(int fontSize) {
         this.fontSize = fontSize;
     }
+
+    public int getDepth() {
+        return depth;
+    }
+
+    public void setDepth(int depth) {
+        if (depth < 0) depth = 0;
+        if (depth > 99) depth = 99;
+        this.depth = depth;
+    }
+
 
 }

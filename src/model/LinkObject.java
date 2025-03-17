@@ -11,6 +11,8 @@ public abstract class LinkObject {
     // 記錄連接埠相對於物件左上角的偏移量
     protected int startPortOffsetX, startPortOffsetY;
     protected int endPortOffsetX, endPortOffsetY;
+    protected int depth;    // 數值範圍 0-99 (數字越小表示越在上層)
+
 
     public LinkObject(BasicObject start, BasicObject end, Point startPort, Point endPort) {
         this.startObject = start;
@@ -23,6 +25,16 @@ public abstract class LinkObject {
         this.startPortOffsetY = startPort.y - start.y;
         this.endPortOffsetX = endPort.x - end.x;
         this.endPortOffsetY = endPort.y - end.y;
+    }
+
+    public int getDepth() {
+        return depth;
+    }
+
+    public void setDepth(int depth) {
+        if (depth < 0) depth = 0;
+        if (depth > 99) depth = 99;
+        this.depth = depth;
     }
 
     public BasicObject getStartObject() {

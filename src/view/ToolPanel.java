@@ -16,15 +16,13 @@ public class ToolPanel extends JPanel {
     public ToolPanel() {
         setLayout(new GridLayout(6, 1));
 
+
         initializeButtons();
         addButtonsToPanel();
         applyDefaultStyles();
         addActionListeners();
     }
 
-    /**
-     * 初始化按鈕與圖示
-     */
     private void initializeButtons() {
         selectBtn = new JButton(loadIcon("/resources/select.png"));
         assocBtn  = new JButton(loadIcon("/resources/association_line.png"));
@@ -41,9 +39,6 @@ public class ToolPanel extends JPanel {
         customizeButton(ovalBtn);
     }
 
-    /**
-     * 將按鈕添加到面板
-     */
     private void addButtonsToPanel() {
         add(selectBtn);
         add(assocBtn);
@@ -53,9 +48,6 @@ public class ToolPanel extends JPanel {
         add(ovalBtn);
     }
 
-    /**
-     * 設定按鈕預設樣式
-     */
     private void applyDefaultStyles() {
         Color defaultColor = Color.decode("#FFF7F3");
         selectBtn.setBackground(defaultColor);
@@ -66,9 +58,6 @@ public class ToolPanel extends JPanel {
         ovalBtn.setBackground(defaultColor);
     }
 
-    /**
-     * 註冊按鈕點擊事件
-     */
     private void addActionListeners() {
         selectBtn.addActionListener(e -> setMode(Mode.SELECT));
         assocBtn.addActionListener(e -> setMode(Mode.ASSOCIATION));
@@ -78,19 +67,20 @@ public class ToolPanel extends JPanel {
         ovalBtn.addActionListener(e -> setMode(Mode.OVAL));
     }
 
-    /**
-     * 設定按鈕的外觀
-     */
     private void customizeButton(JButton button) {
         button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setContentAreaFilled(false);
-        button.setOpaque(true);
-    }
 
-    /**
-     * 嘗試載入圖示，若失敗則回傳空白圖片
-     */
+        // 允許繪製邊框與背景
+        button.setBorderPainted(true);
+        button.setContentAreaFilled(true);
+        button.setOpaque(true);
+
+        // 建立外層的黑色線條邊框 (3px 粗)，再加上內邊距
+        button.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.BLACK, 1),
+                BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
+    }
     private ImageIcon loadIcon(String path) {
         java.net.URL imgURL = getClass().getResource(path);
         if (imgURL != null) {
@@ -102,9 +92,6 @@ public class ToolPanel extends JPanel {
         }
     }
 
-    /**
-     * 設定目前模式並更新 UI
-     */
     private void setMode(Mode mode) {
         this.currentMode = mode;
         updateButtonColors();
@@ -115,9 +102,6 @@ public class ToolPanel extends JPanel {
         return currentMode;
     }
 
-    /**
-     * 更新按鈕背景顏色
-     */
     private void updateButtonColors() {
         Color defaultColor = Color.decode("#FFF7F3");
         Color selectedColor = Color.decode("#FAD0C4");
