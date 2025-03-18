@@ -164,27 +164,18 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
     private void handleSelectPressed(MouseEvent e) {
         BasicObject clickedObj = findObjectAt(e.getPoint());
         List<BasicObject> selectedObjects = model.getSelectedObjects();
+
         if (clickedObj != null) {
-            // 將原先已選取物件恢復預設：用 getNextDepth() 更新其 depth
-            for (BasicObject obj : selectedObjects) {
-                obj.setDepth(BasicObject.getNextDepth());
-            }
+            // 若有新物件被選取，則清除先前的選取狀態
             selectedObjects.clear();
             for (BasicObject obj : model.getObjects()) {
                 obj.setShowPorts(false);
             }
+
             selectedObjects.add(clickedObj);
             clickedObj.setShowPorts(true);
 
-            // 將被選取的物件 depth 設為 -1，代表在最上層
-            clickedObj.setDepth(-1);
-
-            // 更新所有與 clickedObj 連接的連線
-            for (LinkObject link : model.getLinks()) {
-                if (link.getStartObject() == clickedObj || link.getEndObject() == clickedObj) {
-                    link.recalcDepth();
-                }
-            }
+            // 不改變 depth，確保 depth 小的物件依然在上層
             isGroupDragging = true;
             groupDragStartPoint = e.getPoint();
             initialPositions.clear();
@@ -195,10 +186,9 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
             selectionEnd = null;
             canvas.repaint();
         } else {
-            // 點選空白處，恢復所有物件預設深度：使用全域計數器取得下一個值
+            // 點選空白處，恢復物件預設深度，不改變 depth 排序
             for (BasicObject obj : model.getObjects()) {
                 obj.setShowPorts(false);
-                obj.setDepth(BasicObject.getNextDepth());
             }
             selectedObjects.clear();
             selectionStart = e.getPoint();
@@ -207,6 +197,54 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
         }
     }
 
+// 點選時會改變depth
+//    private void handleSelectPressed(MouseEvent e) {
+//        BasicObject clickedObj = findObjectAt(e.getPoint());
+//        List<BasicObject> selectedObjects = model.getSelectedObjects();
+//        if (clickedObj != null) {
+//            // 將原先已選取物件恢復預設：用 getNextDepth() 更新其 depth
+//            for (BasicObject obj : selectedObjects) {
+//                obj.setDepth(BasicObject.getNextDepth());
+//            }
+//            selectedObjects.clear();
+//            for (BasicObject obj : model.getObjects()) {
+//                obj.setShowPorts(false);
+//            }
+//            selectedObjects.add(clickedObj);
+//            clickedObj.setShowPorts(true);
+//
+//            // 將被選取的物件 depth 設為 -1，代表在最上層
+//            clickedObj.setDepth(-1);
+//
+//            // 更新所有與 clickedObj 連接的連線
+//            for (LinkObject link : model.getLinks()) {
+//                if (link.getStartObject() == clickedObj || link.getEndObject() == clickedObj) {
+//                    link.recalcDepth();
+//                }
+//            }
+//            isGroupDragging = true;
+//            groupDragStartPoint = e.getPoint();
+//            initialPositions.clear();
+//            for (BasicObject obj : selectedObjects) {
+//                initialPositions.put(obj, new Point(obj.x, obj.y));
+//            }
+//            selectionStart = null;
+//            selectionEnd = null;
+//            canvas.repaint();
+//        } else {
+//            // 點選空白處，恢復物件預設深度：使用全域計數器取得下一個值
+//            for (BasicObject obj : model.getObjects()) {
+//                obj.setShowPorts(false);
+//                obj.setDepth(BasicObject.getNextDepth());
+//            }
+//            selectedObjects.clear();
+//            selectionStart = e.getPoint();
+//            selectionEnd = e.getPoint();
+//            canvas.repaint();
+//        }
+//    }
+
+// 點選時不會改變depth
     private void handleSelectReleased(MouseEvent e) {
         List<BasicObject> selectedObjects = model.getSelectedObjects();
         if (isGroupDragging) {
@@ -320,7 +358,6 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
         }
     }
 
-    // 提供給 Canvas 呼叫，繪製「橡皮筋線」或「區域選取框」
     public void drawAdditionalGuides(Graphics g) {
         // 橡皮筋線
         if (isLinkDragging && linkStartPoint != null && currentDragPoint != null) {

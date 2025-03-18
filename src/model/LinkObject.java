@@ -46,7 +46,8 @@ public abstract class LinkObject {
         recalcDepth();
     }
 
-    // Getter 與 Setter
+// =================== Getters and Setters ===================
+
     public BasicObject getStartObject() {
         return startObject;
     }
@@ -139,7 +140,7 @@ public abstract class LinkObject {
         if (startObject.getDepth() == 0 || endObject.getDepth() == 0) {
             depth = 0;
         } else {
-            depth = Math.max(startObject.getDepth(), endObject.getDepth());
+            depth = Math.min(startObject.getDepth(), endObject.getDepth());
         }
     }
 
