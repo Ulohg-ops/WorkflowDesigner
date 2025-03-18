@@ -2,7 +2,7 @@ package controller;
 
 import model.*;
 import view.Canvas;
-import view.Mode;
+import enums.Mode;
 import view.ToolPanel;
 
 import java.awt.*;
@@ -148,6 +148,8 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
                         break;
                 }
                 if (link != null) {
+                    // 設定連線的 depth 確保比兩個連接的物件小（在最上層）
+                    link.setDepth(Math.min(linkStartObject.getDepth(), endObj.getDepth()) - 1);
                     model.getLinks().add(link);
                 }
             }
@@ -163,22 +165,24 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
         BasicObject clickedObj = findObjectAt(e.getPoint());
         List<BasicObject> selectedObjects = model.getSelectedObjects();
         if (clickedObj != null) {
-            // 如果點選到物件，則清除原有選取，僅選取新物件
-            if (!selectedObjects.contains(clickedObj)) {
-                selectedObjects.clear();
-                for (BasicObject obj : model.getObjects()) {
-                    obj.setShowPorts(false);
-                }
-                selectedObjects.add(clickedObj);
-                clickedObj.setShowPorts(true);
+            // 將原先已選取物件恢復預設：用 getNextDepth() 更新其 depth
+            for (BasicObject obj : selectedObjects) {
+                obj.setDepth(BasicObject.getNextDepth());
+            }
+            selectedObjects.clear();
+            for (BasicObject obj : model.getObjects()) {
+                obj.setShowPorts(false);
+            }
+            selectedObjects.add(clickedObj);
+            clickedObj.setShowPorts(true);
 
-                // 將被點選的物件 depth 設為 0，使它位於最上層
-                clickedObj.setDepth(0);
-                // 如果其他物件的 depth 也為 0，則將其調整為 1（確保只有這個物件為 0）
-                for (BasicObject obj : model.getObjects()) {
-                    if (obj != clickedObj && obj.getDepth() == 0) {
-                        obj.setDepth(1);
-                    }
+            // 將被選取的物件 depth 設為 -1，代表在最上層
+            clickedObj.setDepth(-1);
+
+            // 更新所有與 clickedObj 連接的連線
+            for (LinkObject link : model.getLinks()) {
+                if (link.getStartObject() == clickedObj || link.getEndObject() == clickedObj) {
+                    link.recalcDepth();
                 }
             }
             isGroupDragging = true;
@@ -191,20 +195,21 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
             selectionEnd = null;
             canvas.repaint();
         } else {
-            // 點選空白處，開始區域選取
-            selectionStart = e.getPoint();
-            selectionEnd = e.getPoint();
-            selectedObjects.clear();
+            // 點選空白處，恢復所有物件預設深度：使用全域計數器取得下一個值
             for (BasicObject obj : model.getObjects()) {
                 obj.setShowPorts(false);
+                obj.setDepth(BasicObject.getNextDepth());
             }
+            selectedObjects.clear();
+            selectionStart = e.getPoint();
+            selectionEnd = e.getPoint();
             canvas.repaint();
         }
     }
+
     private void handleSelectReleased(MouseEvent e) {
         List<BasicObject> selectedObjects = model.getSelectedObjects();
         if (isGroupDragging) {
-            // 結束拖曳，更新連線端點
             for (BasicObject obj : selectedObjects) {
                 updateLinksForObject(obj);
             }
@@ -226,20 +231,30 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
                     obj.setShowPorts(true);
                     selectedObjects.add(obj);
                     anySelected = true;
+                    // 設定選取物件 depth 為 -1（最上層）
+                    obj.setDepth(-1);
                 } else {
                     obj.setShowPorts(false);
+                    // **更新未選取物件的 depth，使它們永遠在最上層**
+                    obj.setDepth(BasicObject.getNextDepth());
                 }
             }
             if (!anySelected) {
                 for (BasicObject obj : model.getObjects()) {
                     obj.setShowPorts(false);
+                    // **確保所有物件不會因為取消選取而沉到底層**
+                    obj.setDepth(BasicObject.getNextDepth());
                 }
             }
             selectionStart = null;
             selectionEnd = null;
+            for (LinkObject link : model.getLinks()) {
+                link.recalcDepth();
+            }
             canvas.repaint();
         }
     }
+
 
     private void handleSelectDragged(MouseEvent e) {
         List<BasicObject> selectedObjects = model.getSelectedObjects();
@@ -271,14 +286,18 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
     }
 
     private BasicObject findObjectAt(Point p) {
-        List<BasicObject> objs = model.getObjects();
-        for (int i = objs.size() - 1; i >= 0; i--) {
-            BasicObject obj = objs.get(i);
+        List<BasicObject> hitObjects = new ArrayList<>();
+        for (BasicObject obj : model.getObjects()) {
             if (obj.contains(p)) {
-                return obj;
+                hitObjects.add(obj);
             }
         }
-        return null;
+        if (hitObjects.isEmpty()) {
+            return null;
+        }
+        // 依 depth 升序排序（-1 最小）
+        hitObjects.sort((o1, o2) -> Integer.compare(o1.getDepth(), o2.getDepth()));
+        return hitObjects.get(0);
     }
 
     private void updateLinksForObject(BasicObject movedObj) {
@@ -297,6 +316,7 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
                 );
                 link.setEndPort(newEndPort);
             }
+            link.recalcDepth();
         }
     }
 

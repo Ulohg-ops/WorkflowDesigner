@@ -1,6 +1,6 @@
 package model;
 
-import view.LabelShape;
+import enums.LabelShape;
 
 import java.awt.*;
 
@@ -12,11 +12,10 @@ public class RectObject extends BasicObject {
 
     @Override
     public void draw(Graphics g) {
-        // 繪製矩形
 
+        //著色和畫快框
         g.setColor(Color.decode("#F6F0F0"));
         g.fillRect(x, y, width, height);
-
         g.setColor(Color.BLACK);
         g.drawRect(x, y, width, height);
 
@@ -39,7 +38,6 @@ public class RectObject extends BasicObject {
         if (!label.isEmpty()) {
             g.setFont(new Font("SansSerif", Font.PLAIN, fontSize));
             g.setColor(labelColor);
-            // 根據 labelShape 繪製不同背景
             if (labelShape == LabelShape.RECTANGLE) {
                 g.fillRect(x, y - fontSize, g.getFontMetrics().stringWidth(label), fontSize);
             } else if (labelShape == LabelShape.OVAL) {

@@ -1,4 +1,4 @@
-package view;
+package enums;
 
 public enum LabelShape {
     RECTANGLE,

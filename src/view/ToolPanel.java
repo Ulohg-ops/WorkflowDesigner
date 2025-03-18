@@ -1,5 +1,7 @@
 package view;
 
+import enums.Mode;
+
 import javax.swing.*;
 import java.awt.*;
 

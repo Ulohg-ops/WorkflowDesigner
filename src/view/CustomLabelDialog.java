@@ -1,5 +1,7 @@
 package view;
 
+import enums.LabelShape;
+
 import javax.swing.*;
 import java.awt.*;
 
