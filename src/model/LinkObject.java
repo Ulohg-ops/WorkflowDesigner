@@ -9,19 +9,19 @@ import java.awt.*;
 public abstract class LinkObject {
 
     // 連線所連接的兩個物件
-    protected BasicObject startObject;
-    protected BasicObject endObject;
+    private BasicObject startObject;
+    private BasicObject endObject;
 
     // 連線端點在畫面上的實際座標
-    protected Point startPort;
-    protected Point endPort;
+    private Point startPort;
+    private Point endPort;
 
-    // 記錄端點相對於物件左上角的偏移量
-    protected int startPortOffsetX, startPortOffsetY;
-    protected int endPortOffsetX, endPortOffsetY;
+    // 端口相對於物件左上角的偏移量
+    private int startPortOffsetX, startPortOffsetY;
+    private int endPortOffsetX, endPortOffsetY;
 
-    // 連線的深度，0 表示被選取
-    protected int depth;
+    // 連線的深度，0 代表被選取
+    private int depth;
 
     /**
      * 建構子，初始化連線的起點、終點及端口座標，同時計算偏移量及深度。
@@ -38,15 +38,13 @@ public abstract class LinkObject {
         this.endPort = endPort;
 
         // 計算端口相對於物件左上角的偏移量
-        this.startPortOffsetX = startPort.x - start.x;
-        this.startPortOffsetY = startPort.y - start.y;
-        this.endPortOffsetX = endPort.x - end.x;
-        this.endPortOffsetY = endPort.y - end.y;
+        this.startPortOffsetX = startPort.x - start.getX();
+        this.startPortOffsetY = startPort.y - start.getY();
+        this.endPortOffsetX = endPort.x - end.getX();
+        this.endPortOffsetY = endPort.y - end.getY();
 
-        recalcDepth();
+        reCalcDepth();
     }
-
-// =================== Getters and Setters ===================
 
     public BasicObject getStartObject() {
         return startObject;
@@ -136,7 +134,7 @@ public abstract class LinkObject {
      * - 若任一端的物件深度為 0（代表被選取），則連線深度設為 0；<br>
      * - 否則，取兩端物件深度的較大值。
      */
-    public void recalcDepth() {
+    public void reCalcDepth() {
         if (startObject.getDepth() == 0 || endObject.getDepth() == 0) {
             depth = 0;
         } else {
@@ -149,9 +147,9 @@ public abstract class LinkObject {
      * 並重新計算連線的深度。
      */
     public void updatePorts() {
-        startPort = new Point(startObject.x + startPortOffsetX, startObject.y + startPortOffsetY);
-        endPort = new Point(endObject.x + endPortOffsetX, endObject.y + endPortOffsetY);
-        recalcDepth();
+        startPort = new Point(startObject.getX() + startPortOffsetX, startObject.getY() + startPortOffsetY);
+        endPort = new Point(endObject.getX() + endPortOffsetX, endObject.getY() + endPortOffsetY);
+        reCalcDepth();
     }
 
     /**
@@ -160,7 +158,7 @@ public abstract class LinkObject {
      * @param g Graphics 物件
      */
     public void draw(Graphics g) {
-        updatePorts();  // 更新端點與深度
+        updatePorts();
         Graphics2D g2d = (Graphics2D) g;
         g2d.setColor(Color.BLACK);
         g2d.drawLine(startPort.x, startPort.y, endPort.x, endPort.y);

@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Canvas 類別繼承自 JPanel，負責在畫布上繪製圖形物件與連線，
+ * Canvas 類別繼承自 JPanel，負責在畫布上繪製圖形物件與連線
  * 並處理相關的滑鼠事件與輔助繪製。
  */
 public class Canvas extends JPanel {
@@ -85,48 +85,6 @@ public class Canvas extends JPanel {
         // 繪製其他輔助指引 (例如拖曳時的輔助線)
         controller.drawAdditionalGuides(g);
     }
-
-
-//    @Override
-//    protected void paintComponent(Graphics g) {
-//        super.paintComponent(g);
-//
-//        // 分離未選取與選取的物件 (depth -1 表示選取)
-//        List<BasicObject> selectedObjs = new ArrayList<>();
-//        List<BasicObject> unselectedObjs = new ArrayList<>();
-//        for (BasicObject obj : model.getObjects()) {
-//            if (obj.getDepth() == -1) {
-//                selectedObjs.add(obj);
-//            } else {
-//                unselectedObjs.add(obj);
-//            }
-//        }
-//
-//        // 取得所有連線，並按 depth 降序排序 (depth 較大的在底層)
-//        List<LinkObject> allLinks = new ArrayList<>(model.getLinks());
-//        allLinks.sort((l1, l2) -> Integer.compare(l2.getDepth(), l1.getDepth()));
-//
-//        // 依照 depth 降序排列未選取與選取物件 (depth 較大的在底層)
-//        unselectedObjs.sort((o1, o2) -> Integer.compare(o2.getDepth(), o1.getDepth()));
-//        selectedObjs.sort((o1, o2) -> Integer.compare(o2.getDepth(), o1.getDepth()));
-//
-//        // 繪製順序：
-//        // (1) 未選取物件
-//        for (BasicObject obj : unselectedObjs) {
-//            obj.draw(g);
-//        }
-//        // (2) 連線 (確保連線繪製在物件之上，但仍可被新建物件覆蓋)
-//        for (LinkObject link : allLinks) {
-//            link.draw(g);
-//        }
-//        // (3) 選取物件
-//        for (BasicObject obj : selectedObjs) {
-//            obj.draw(g);
-//        }
-//
-//        // 繪製其他輔助指引 (例如拖曳時的輔助線)
-//        controller.drawAdditionalGuides(g);
-//    }
 
     /**
      * 將目前選取的物件進行群組化。
