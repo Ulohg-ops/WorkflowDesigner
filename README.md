@@ -6,7 +6,12 @@
     - 負責繪製並顯示畫面上的所有圖形、連線以及 UI 元件，讓使用者看到目前的狀態。
   - Controller: 使用者的互動
     - 負責捕捉和處理使用者的操作（例如滑鼠點擊、拖曳、按鈕點選等），並根據這些輸入更新 Model 的狀態，再通知 View 重繪。
-![img.png](readme_img/img.png)
+![img.png](readme_img/img1.png)
+
+## UML 設計
+![img.png](readme_img/img2.png)
+
+![img.png](readme_img/img3.png)
 ## Requirement and Spec
 以下只有大略列出Requirement詳細內容請參考spec
 

@@ -12,8 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Canvas 類別繼承自 JPanel，負責在畫布上繪製圖形物件與連線
- * 並處理相關的滑鼠事件與輔助繪製。
+ * 負責在畫布上繪製圖形物件與連線並處理相關的滑鼠事件與輔助繪製。
  */
 public class Canvas extends JPanel {
     public static final int DEFAULT_WIDTH = 120;

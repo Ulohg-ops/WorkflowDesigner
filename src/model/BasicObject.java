@@ -9,26 +9,21 @@ import java.awt.*;
  */
 public abstract class BasicObject {
 
-    // =================== 常數 ===================
     private static final int MIN_DEPTH = -1;
     private static final int MAX_DEPTH = 99;
     private static int nextDepth = 99; // 靜態計數器：每建立一個新物件，就給它一個遞減的 depth 值
 
-    // =================== 基本屬性 ===================
     private int x;
     private int y;
     private int width;
     private int height;
-    protected int depth; //物件的層次值；數值越小代表越上層
-    protected boolean showPorts = false;
+    private int depth; //物件的層次值；數值越小代表越上層
+    private boolean showPorts = false;
 
-    // =================== Label屬性 ===================
-    protected String label = "";
-    protected LabelShape labelShape = LabelShape.RECTANGLE;
-    protected Color labelColor = Color.WHITE;
-    protected int fontSize = 12;
-
-// =================== Constructor ===================
+    private String label = "";
+    private LabelShape labelShape = LabelShape.RECTANGLE;
+    private Color labelColor = Color.WHITE;
+    private int fontSize = 12;
 
     /**
      * 建構子，初始化物件位置、尺寸及層次。
@@ -43,13 +38,8 @@ public abstract class BasicObject {
         this.y = y;
         this.width = width;
         this.height = height;
-        // 給新建立的物件一個較大的 depth 值
         this.depth = nextDepth--;
-        System.out.printf("depth = %d\n", depth);
-
     }
-
-// =================== Getters and Setters ===================
 
     public int getX() {
         return x;
@@ -156,7 +146,6 @@ public abstract class BasicObject {
         return showPorts;
     }
 
-// =================== 其他抽象和具體方法 ===================
 
     /**
      * 繪製物件，具體的繪製方法由子類別實作。

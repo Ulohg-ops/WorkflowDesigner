@@ -58,34 +58,25 @@ public class MainFrame extends JFrame {
     private JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
 
-        // ===== File Menu =====
         JMenu fileMenu = new JMenu("File");
         JMenuItem exitItem = new JMenuItem("Exit");
-        // 按下 Exit 時直接結束程式
         exitItem.addActionListener(e -> System.exit(0));
         fileMenu.add(exitItem);
         menuBar.add(fileMenu);
 
-        // ===== Edit Menu =====
         JMenu editMenu = new JMenu("Edit");
         JMenuItem groupItem = new JMenuItem("Group");
         JMenuItem unGroupItem = new JMenuItem("Ungroup");
         JMenuItem customLabelItem = new JMenuItem("Custom Label Style");
 
-        // 群組：呼叫畫布的 groupSelectedObjects() 方法
         groupItem.addActionListener(e -> canvas.groupSelectedObjects());
-        // 解群組：呼叫畫布的 ungroupSelectedObject() 方法
         unGroupItem.addActionListener(e -> canvas.ungroupSelectedObject());
 
-        // 自訂標籤樣式：彈出 CustomLabelDialog 讓使用者修改標籤設定
         customLabelItem.addActionListener(e -> {
-            // 取得目前選取的物件列表
             List<BasicObject> selected = canvas.getSelectedObjects();
-            // 只允許對一個物件進行標籤設定
             if (selected.size() == 1) {
                 BasicObject obj = selected.get(0);
 
-                // 建立自訂標籤對話框，傳入當前物件的標籤設定
                 CustomLabelDialog dialog = new CustomLabelDialog(
                         MainFrame.this,
                         obj.getLabel(),
@@ -93,20 +84,16 @@ public class MainFrame extends JFrame {
                         obj.getLabelColor(),
                         obj.getFontSize()
                 );
-                // 顯示對話框（模態對話框，會阻塞後續操作）
                 dialog.setVisible(true);
 
-                // 如果使用者確認 (按下 OK)，則更新物件的標籤設定
                 if (dialog.isConfirmed()) {
                     obj.setLabel(dialog.getLabelName());
                     obj.setLabelShape(dialog.getLabelShape());
                     obj.setLabelColor(dialog.getChosenColor());
                     obj.setFontSize(dialog.getFontSize());
-                    // 更新畫布顯示
                     canvas.repaint();
                 }
             } else {
-                // 若沒有或選取多個物件，則彈出提示訊息
                 JOptionPane.showMessageDialog(
                         MainFrame.this,
                         "請先選取一個物件",

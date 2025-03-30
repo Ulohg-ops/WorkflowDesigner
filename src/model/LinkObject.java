@@ -36,8 +36,6 @@ public abstract class LinkObject {
         this.endObject = end;
         this.startPort = startPort;
         this.endPort = endPort;
-
-        // 計算端口相對於物件左上角的偏移量
         this.startPortOffsetX = startPort.x - start.getX();
         this.startPortOffsetY = startPort.y - start.getY();
         this.endPortOffsetX = endPort.x - end.getX();
