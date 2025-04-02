@@ -12,24 +12,6 @@
 ![img.png](readme_img/img2.png)
 
 ![img.png](readme_img/img3.png)
-## Requirement and Spec
-以下只有大略列出Requirement詳細內容請參考spec
-
-UseCase A. Creating an object
-- precondition: 適用 rect 或 oval 按鈕被按下的情況
-
-
-
-UseCase B. Creating a Link
-- precondition: 適用 association, generalization 以及 composition 三個按鈕。
-
-
-UseCase C. Select / Unselect a single objects
-- definition: 當一個基本物件被處於被 select 的狀態,我們會將所有 connection
-  ports 明確顯示出來,如上圖,以表示基本物件處於被 select 的狀 態。相反的
-  若基本物件處於不被 select 的狀態,則 connection ports 是隱藏的。 
-- 這邊我參考draw.io的部分，當使用line時 hover會顯示port以增加user experience。
-
 
 ## 參考
 Google Java Style Guide

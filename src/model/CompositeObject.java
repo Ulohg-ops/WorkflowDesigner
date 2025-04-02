@@ -123,7 +123,6 @@ public class CompositeObject extends BasicObject {
                 child.setY(child.getY() + dy);
             }
         }
-        // 移動完所有子物件後，更新自身的 bounding box
         updateBounds();
     }
 

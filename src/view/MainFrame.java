@@ -13,37 +13,27 @@ import java.util.List;
  */
 public class MainFrame extends JFrame {
 
-    // 左側工具面板，提供模式切換與工具按鈕
     private ToolPanel toolPanel;
-    // 中央畫布，用於繪製物件與連線
     private Canvas canvas;
 
     /**
      * 建構子：初始化主視窗，設置版面配置、工具面板、畫布與選單列。
      */
     public MainFrame() {
-        // 設定視窗標題
         super("Workflow Design Editor");
-        // 設定視窗關閉時退出程式
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        // 使用 BorderLayout 分佈版面
         setLayout(new BorderLayout());
 
-        // 初始化並加入工具面板到左側
         toolPanel = new ToolPanel();
         add(toolPanel, BorderLayout.WEST);
 
-        // 建立模型，包含所有繪製物件與連線
         CanvasModel model = new CanvasModel();
 
-        // 建立畫布，傳入工具面板與模型供畫布操作
         canvas = new Canvas(toolPanel, model);
         add(canvas, BorderLayout.CENTER);
 
-        // 設定選單列（包含 File 與 Edit 選單）
         setJMenuBar(createMenuBar());
 
-        // 設定視窗大小與置中顯示
         setSize(800, 600);
         setLocationRelativeTo(null);
     }
@@ -103,7 +93,6 @@ public class MainFrame extends JFrame {
             }
         });
 
-        // 將 Edit Menu 的選項加入選單列
         editMenu.add(groupItem);
         editMenu.add(unGroupItem);
         editMenu.add(customLabelItem);

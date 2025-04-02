@@ -23,9 +23,9 @@ public class Canvas extends JPanel {
     private CanvasController controller;
 
     /**
-     * 建構子，初始化工具面板、模型與控制器，並設定背景顏色與滑鼠監聽器。
+     * 建構子，初始化toolPanel、modle、controller，設定背景顏色與滑鼠監聽器。
      *
-     * @param toolPanel 工具面板
+     * @param toolPanel toolPanel
      * @param model     畫布模型，包含所有物件與連線
      */
     public Canvas(ToolPanel toolPanel, CanvasModel model) {
@@ -57,19 +57,16 @@ public class Canvas extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        // 建立一個新列表存放物件與連線
         List<Object> drawList = new ArrayList<>();
 
-        // 將所有物件加入 drawList
         drawList.addAll(model.getObjects());
-        // 將所有連線加入 drawList
         drawList.addAll(model.getLinks());
 
         // 依 depth 進行排序 (depth 較大的先畫，較小的在上層)
         drawList.sort((o1, o2) -> {
             int depth1 = (o1 instanceof BasicObject) ? ((BasicObject) o1).getDepth() : ((LinkObject) o1).getDepth();
             int depth2 = (o2 instanceof BasicObject) ? ((BasicObject) o2).getDepth() : ((LinkObject) o2).getDepth();
-            return Integer.compare(depth2, depth1); // 降序排列
+            return Integer.compare(depth2, depth1);
         });
 
         // 依照排序後的順序繪製

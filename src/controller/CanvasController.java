@@ -14,25 +14,24 @@ import java.util.Map;
 
 /**
  * CanvasController 負責處理 Canvas 上的滑鼠事件，
- * 包括物件的建立、連線拖曳、選取與群組/解群組操作。
+ * 像是物件的建立、連線拖曳、選取與群組/解群組操作。
  */
 public class CanvasController extends MouseAdapter implements MouseMotionListener {
     private ToolPanel toolPanel;
     private CanvasModel model;
     private Canvas canvas;
 
-    // ===== 拉線相關變數 =====
     private boolean isLinkDragging = false;
     private BasicObject linkStartObject = null;
     private Point linkStartPoint = null;
     private Point currentDragPoint = null;
 
-    // ===== 拖曳選取相關變數 =====
     private Point selectionStart = null;
     private Point selectionEnd = null;
-    private boolean isGroupDragging = false;
+    private boolean isGroupDragging = false; // 拖曳時一個也當作是Group
     private Point groupDragStartPoint = null;
-    // 記錄每個被選取物件拖曳前的初始位置，用於計算位移
+
+    // 群組拖曳時記錄每個選取物件的起始位置，拖曳時可以根據這個計算每個物件的新位置
     private Map<BasicObject, Point> initialPositions = new HashMap<>();
 
     /**
@@ -57,7 +56,6 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
         Mode mode = toolPanel.getCurrentMode();
         switch (mode) {
             case RECT:
-                // 建立新的矩形物件，並加入模型中
                 model.getObjects().add(new RectObject(
                         e.getX(), e.getY(),
                         Canvas.DEFAULT_WIDTH, Canvas.DEFAULT_HEIGHT
@@ -65,7 +63,6 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
                 canvas.repaint();
                 break;
             case OVAL:
-                // 建立新的橢圓物件，並加入模型中
                 model.getObjects().add(new OvalObject(
                         e.getX(), e.getY(),
                         Canvas.DEFAULT_WIDTH, Canvas.DEFAULT_HEIGHT
@@ -75,11 +72,9 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
             case ASSOCIATION:
             case GENERALIZATION:
             case COMPOSITION:
-                // 在連線模式下，開始拖曳連線
                 startLinkDragging(e);
                 break;
             case SELECT:
-                // 處理選取按下事件（點選物件或開始拉選範圍）
                 handleSelectPressed(e);
                 break;
             default:
@@ -98,7 +93,6 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
             case ASSOCIATION:
             case GENERALIZATION:
             case COMPOSITION:
-                // 結束連線拖曳，建立連線物件
                 endLinkDragging(e);
                 break;
             case SELECT:
@@ -121,14 +115,12 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
             case ASSOCIATION:
             case GENERALIZATION:
             case COMPOSITION:
-                // 更新連線拖曳時的滑鼠位置，重繪畫布
                 if (isLinkDragging) {
                     currentDragPoint = e.getPoint();
                     canvas.repaint();
                 }
                 break;
             case SELECT:
-                // 處理選取時的拖曳事件
                 handleSelectDragged(e);
                 break;
             default:
@@ -162,7 +154,6 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
         BasicObject startObj = findObjectAt(e.getPoint());
         if (startObj != null) {
             linkStartObject = startObj;
-            // 取得最靠近滑鼠點的連線端口位置
             linkStartPoint = startObj.getClosestPort(e.getPoint());
             isLinkDragging = true;
             currentDragPoint = e.getPoint();
@@ -221,28 +212,33 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
         List<BasicObject> selectedObjects = model.getSelectedObjects();
 
         if (clickedObj != null) {
-            // 清除先前選取，並隱藏所有物件的連線端口
-            selectedObjects.clear();
-            for (BasicObject obj : model.getObjects()) {
-                obj.setShowPorts(false);
-            }
-            // 選取目前點選的物件，並顯示其連線端口
-            selectedObjects.add(clickedObj);
-            clickedObj.setShowPorts(true);
+            if (selectedObjects.contains(clickedObj)) {
+                isGroupDragging = true;
+                groupDragStartPoint = e.getPoint();
+                initialPositions.clear();
+                for (BasicObject obj : selectedObjects) {
+                    initialPositions.put(obj, new Point(obj.getX(), obj.getY()));
+                }
+            } else {
+                // 清除之前的選取狀態
+                selectedObjects.clear();
+                for (BasicObject obj : model.getObjects()) {
+                    obj.setShowPorts(false);
+                }
+                // 選取新的物件
+                selectedObjects.add(clickedObj);
+                clickedObj.setShowPorts(true);
 
-            // 準備群組拖曳：記錄每個選取物件的初始位置
-            isGroupDragging = true;
-            groupDragStartPoint = e.getPoint();
-            initialPositions.clear();
-            for (BasicObject obj : selectedObjects) {
-                initialPositions.put(obj, new Point(obj.getX(), obj.getY()));
+                isGroupDragging = true;
+                groupDragStartPoint = e.getPoint();
+                initialPositions.clear();
+                initialPositions.put(clickedObj, new Point(clickedObj.getX(), clickedObj.getY()));
             }
-            // 若是群組拖曳，清除選取矩形座標
+
             selectionStart = null;
             selectionEnd = null;
             canvas.repaint();
         } else {
-            // 點選空白區域，清除所有物件的選取狀態，開始建立選取矩形
             for (BasicObject obj : model.getObjects()) {
                 obj.setShowPorts(false);
             }
@@ -291,7 +287,7 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
                     obj.setDepth(-1);
                 } else {
                     obj.setShowPorts(false);
-                    // 更新未選取物件的 depth，確保它們位於較低層
+                    // 更新所有未選取物件的 depth，確保它們位於較低層
                     obj.setDepth(BasicObject.getNextDepth());
                 }
             }
@@ -322,11 +318,9 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
     private void handleSelectDragged(MouseEvent e) {
         List<BasicObject> selectedObjects = model.getSelectedObjects();
         if (isGroupDragging) {
-            // 計算從上次拖曳位置到當前位置的位移量
             int deltaX = e.getX() - groupDragStartPoint.x;
             int deltaY = e.getY() - groupDragStartPoint.y;
 
-            // 對所有被選取物件進行移動
             for (BasicObject obj : selectedObjects) {
                 if (obj instanceof CompositeObject) {
                     ((CompositeObject) obj).moveBy(deltaX, deltaY);
@@ -337,7 +331,6 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
                 }
                 updateLinksForObject(obj);
             }
-            // 更新 groupDragStartPoint 為當前滑鼠位置，以便下一次拖曳計算增量
             groupDragStartPoint = e.getPoint();
             canvas.repaint();
         } else if (selectionStart != null) {
@@ -403,7 +396,6 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
      * @param g Graphics 物件
      */
     public void drawAdditionalGuides(Graphics g) {
-        // 繪製橡皮筋線（連線拖曳時）
         if (isLinkDragging && linkStartPoint != null && currentDragPoint != null) {
             g.setColor(Color.GRAY);
             g.drawLine(linkStartPoint.x, linkStartPoint.y, currentDragPoint.x, currentDragPoint.y);
@@ -419,41 +411,22 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
         }
     }
 
-    // ===== 群組/解群組操作 =====
-
     /**
      * 將多個被選取的物件群組成一個 CompositeObject。
-     * 1. 收集所有被選取的物件（若其中有 CompositeObject，則平坦化其子物件）。
-     * 2. 從模型中移除這些物件，並移除所有僅連接於這些物件間的連線。
-     * 3. 建立新的 CompositeObject 並加入模型，同時更新選取狀態。
      */
     public void groupSelectedObjects() {
         List<BasicObject> selected = model.getSelectedObjects();
-        // 只有當選取的物件數量大於等於 2 時才進行群組操作
+        // 只有當選取的物件數量大於等於 2 時才能進行群組操作
         if (selected.size() >= 2) {
-            // 將所有選取的物件直接作為新群組的子物件，
-            // 不平坦化已存在的 composite 物件，達到一層一層增加的效果
             List<BasicObject> newChildren = new ArrayList<>(selected);
-
-            // 從模型中移除原本被選取的物件
+            //從畫面模型中移除，因為等會要用群組物件來取代它們
             model.getObjects().removeAll(selected);
 
-            // 移除所有僅連接在選取物件之間的連線
-            List<LinkObject> linksToRemove = new ArrayList<>();
-            for (LinkObject link : model.getLinks()) {
-                BasicObject start = link.getStartObject();
-                BasicObject end = link.getEndObject();
-                if (selected.contains(start) && selected.contains(end)) {
-                    linksToRemove.add(link);
-                }
-            }
-            model.getLinks().removeAll(linksToRemove);
-
-            // 建立新的 CompositeObject，並傳入 newChildren 作為其子物件
             CompositeObject composite = new CompositeObject(newChildren);
+
             model.getObjects().add(composite);
 
-            // 更新選取狀態：清除原先的選取，並選取新建立的 composite 物件
+
             selected.clear();
             composite.setShowPorts(true);
             selected.add(composite);
