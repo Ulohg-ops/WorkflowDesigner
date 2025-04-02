@@ -47,11 +47,15 @@ public class Canvas extends JPanel {
         return model.getSelectedObjects();
     }
 
+
+
     /**
-     * 覆寫 paintComponent 方法，根據物件與連線的 depth 排序後進行繪製。
-     * 繪製順序為：未選取物件 → 連線 → 選取物件。
+     * 繪製畫布上的所有圖形與連線物件。
+     * 此方法會根據物件的 depth（層級）進行排序，depth 越小的物件顯示在越上層。
+     * 繪製順序為：物件與連線依照 depth 排序 → 個別呼叫 draw 方法繪製。
+     * 最後繪製額外的輔助元素，例如拖曳線或選取框。
      *
-     * @param g Graphics 物件
+     * @param g 提供繪圖功能的 Graphics 物件，由 Swing 系統自動提供
      */
     @Override
     protected void paintComponent(Graphics g) {
@@ -62,14 +66,12 @@ public class Canvas extends JPanel {
         drawList.addAll(model.getObjects());
         drawList.addAll(model.getLinks());
 
-        // 依 depth 進行排序 (depth 較大的先畫，較小的在上層)
         drawList.sort((o1, o2) -> {
             int depth1 = (o1 instanceof BasicObject) ? ((BasicObject) o1).getDepth() : ((LinkObject) o1).getDepth();
             int depth2 = (o2 instanceof BasicObject) ? ((BasicObject) o2).getDepth() : ((LinkObject) o2).getDepth();
             return Integer.compare(depth2, depth1);
         });
 
-        // 依照排序後的順序繪製
         for (Object obj : drawList) {
             if (obj instanceof BasicObject) {
                 ((BasicObject) obj).draw(g);
@@ -78,7 +80,6 @@ public class Canvas extends JPanel {
             }
         }
 
-        // 繪製其他輔助指引 (例如拖曳時的輔助線)
         controller.drawAdditionalGuides(g);
     }
 

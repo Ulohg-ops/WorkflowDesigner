@@ -28,15 +28,12 @@ public class OvalObject extends BasicObject {
      */
     @Override
     public void draw(Graphics g) {
-        // 1. 繪製橢圓背景，使用淡色填滿
         g.setColor(Color.decode("#F6F0F0"));
         g.fillOval(getX(), getY(), getWidth(), getHeight());
 
-        // 2. 繪製橢圓外框
         g.setColor(Color.BLACK);
         g.drawOval(getX(), getY(), getWidth(), getHeight());
 
-        // 3. 如果需要顯示連接埠（ports），則繪製位於橢圓四邊中點的小方塊
         if (isShowPorts()) {
             g.setColor(Color.BLACK);
             Point[] ports = getPorts();
@@ -45,10 +42,8 @@ public class OvalObject extends BasicObject {
             }
         }
 
-        // 4. 若物件有標籤文字，則在橢圓內部置中繪製標籤
         if (!getLabel().isEmpty()) {
             Graphics2D g2d = (Graphics2D) g;
-            // 設定字型與大小
             g2d.setFont(new Font("SansSerif", Font.PLAIN, getFontSize()));
             FontMetrics fm = g2d.getFontMetrics();
 
@@ -56,16 +51,12 @@ public class OvalObject extends BasicObject {
             int textWidth = fm.stringWidth(text);  // 文字寬度
             int textHeight = fm.getAscent();         // 文字高度（以字體上升高度計算）
 
-            // 計算橢圓外框的中心點
             int centerX = getX() + getWidth() / 2;
             int centerY = getY() + getHeight() / 2;
 
-            // 計算文字置中的座標
             int labelX = centerX - textWidth / 2;
-            // 基線位置微調：使文字垂直置中
             int labelY = centerY + textHeight / 4;
 
-            // 先繪製標籤背景：根據使用者選擇的形狀繪製背景（矩形或橢圓）
             g2d.setColor(getLabelColor());
             if (getLabelShape() == LabelShape.RECTANGLE) {
                 g2d.fillRect(labelX, labelY - textHeight, textWidth, textHeight);
@@ -73,7 +64,6 @@ public class OvalObject extends BasicObject {
                 g2d.fillOval(labelX, labelY - textHeight, textWidth, textHeight);
             }
 
-            // 再繪製標籤文字，使用黑色
             g2d.setColor(Color.BLACK);
             g2d.drawString(text, labelX, labelY);
         }

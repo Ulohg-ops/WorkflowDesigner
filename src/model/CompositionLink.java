@@ -71,14 +71,12 @@ public class CompositionLink extends LinkObject {
         int lx = cx - (int)(diamondWidth * px); // 左頂點 x 座標
         int ly = cy - (int)(diamondWidth * py); // 左頂點 y 座標
 
-        // 用 Polygon 組成菱形
         Polygon diamond = new Polygon();
         diamond.addPoint(tip.x, tip.y);       // 上頂點
         diamond.addPoint(rx, ry);             // 右頂點
         diamond.addPoint(bottom.x, bottom.y); // 下頂點
         diamond.addPoint(lx, ly);             // 左頂點
 
-        // 繪製菱形邊框
         g2d.drawPolygon(diamond);
     }
 }

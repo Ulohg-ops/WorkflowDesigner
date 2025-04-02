@@ -400,7 +400,6 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
             g.setColor(Color.GRAY);
             g.drawLine(linkStartPoint.x, linkStartPoint.y, currentDragPoint.x, currentDragPoint.y);
         }
-        // 繪製選取矩形
         if (toolPanel.getCurrentMode() == Mode.SELECT && selectionStart != null && selectionEnd != null) {
             g.setColor(Color.BLUE);
             int x = Math.min(selectionStart.x, selectionEnd.x);
@@ -416,10 +415,8 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
      */
     public void groupSelectedObjects() {
         List<BasicObject> selected = model.getSelectedObjects();
-        // 只有當選取的物件數量大於等於 2 時才能進行群組操作
         if (selected.size() >= 2) {
             List<BasicObject> newChildren = new ArrayList<>(selected);
-            //從畫面模型中移除，因為等會要用群組物件來取代它們
             model.getObjects().removeAll(selected);
 
             CompositeObject composite = new CompositeObject(newChildren);
@@ -444,9 +441,7 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
         List<BasicObject> selected = model.getSelectedObjects();
         if (selected.size() == 1 && selected.get(0) instanceof CompositeObject) {
             CompositeObject composite = (CompositeObject) selected.get(0);
-            // 從模型中移除 composite 物件
             model.getObjects().remove(composite);
-            // 移除所有與 composite 相關的連線
             List<LinkObject> linksToRemove = new ArrayList<>();
             for (LinkObject link : model.getLinks()) {
                 if (link.getStartObject() == composite || link.getEndObject() == composite) {
@@ -454,10 +449,8 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
                 }
             }
             model.getLinks().removeAll(linksToRemove);
-            // 將 composite 的子物件加入模型
             List<BasicObject> children = composite.getChildren();
             model.getObjects().addAll(children);
-            // 更新選取狀態：清除原選取，並將所有子物件設為選取
             selected.clear();
             for (BasicObject child : children) {
                 child.setShowPorts(true);
