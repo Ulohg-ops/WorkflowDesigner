@@ -3,21 +3,12 @@ package model;
 import enums.LabelShape;
 import java.awt.*;
 
-/**
- * BasicObject 抽象類別，代表圖形物件的基本屬性與行為。
- * 包含位置、尺寸、層次、Label 屬性，以及連線端口的抽象方法。
- */
-public abstract class BasicObject {
-
-    private static final int MIN_DEPTH = -1;
-    private static final int MAX_DEPTH = 99;
-    private static int nextDepth = 99; // 靜態計數器：每建立一個新物件，就給它一個遞減的 depth 值
+public abstract class BasicObject extends DisplayObject {
 
     private int x;
     private int y;
     private int width;
     private int height;
-    private int depth; //物件的層次值；數值越小代表越上層
     private boolean showPorts = false;
 
     private String label = "";
@@ -25,157 +16,61 @@ public abstract class BasicObject {
     private Color labelColor = Color.WHITE;
     private int fontSize = 12;
 
-    /**
-     * 建構子，初始化物件位置、尺寸及層次。
-     *
-     * @param x 物件的 x 座標
-     * @param y 物件的 y 座標
-     * @param width 物件的寬度
-     * @param height 物件的高度
-     */
     public BasicObject(int x, int y, int width, int height) {
+        super();  // 呼叫 DisplayObject 建構子，設定 depth
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
-        this.depth = nextDepth--;
     }
 
-    public int getX() {
-        return x;
-    }
+    // Getter 與 Setter
+    public int getX() { return x; }
+    public void setX(int x) { this.x = x; }
 
-    public void setX(int x) {
-        this.x = x;
-    }
+    public int getY() { return y; }
+    public void setY(int y) { this.y = y; }
 
-    public int getY() {
-        return y;
-    }
+    public int getWidth() { return width; }
+    public void setWidth(int width) { this.width = width; }
 
-    public void setY(int y) {
-        this.y = y;
-    }
+    public int getHeight() { return height; }
+    public void setHeight(int height) { this.height = height; }
 
-    public int getWidth() {
-        return width;
-    }
+    public void setShowPorts(boolean show) { this.showPorts = show; }
+    public boolean isShowPorts() { return showPorts; }
 
-    public void setWidth(int width) {
-        this.width = width;
-    }
+    public String getLabel() { return label; }
+    public void setLabel(String label) { this.label = label; }
 
-    public int getHeight() {
-        return height;
-    }
+    public LabelShape getLabelShape() { return labelShape; }
+    public void setLabelShape(LabelShape labelShape) { this.labelShape = labelShape; }
 
-    public void setHeight(int height) {
-        this.height = height;
-    }
+    public Color getLabelColor() { return labelColor; }
+    public void setLabelColor(Color labelColor) { this.labelColor = labelColor; }
+
+    public int getFontSize() { return fontSize; }
+    public void setFontSize(int fontSize) { this.fontSize = fontSize; }
 
     /**
-     * 設定全域靜態計數器的下一個深度值。
-     *
-     * @param nextDepth 下一個深度值
-     */
-    public static void setNextDepth(int nextDepth) {
-        BasicObject.nextDepth = nextDepth;
-    }
-
-    /**
-     * 當物件取消選取時，取得全域靜態計數器的下一個深度值。
-     *
-     * @return 下一個深度值
-     */
-    public static int getNextDepth() {
-        return nextDepth--;
-    }
-
-    public int getDepth() {
-        return depth;
-    }
-
-    /**
-     * 設定物件的層次值，範圍限定在 -1（代表選取）到 99 之間。
-     *
-     * @param depth 層次值
-     */
-    public void setDepth(int depth) {
-        if (depth < MIN_DEPTH) depth = MIN_DEPTH;
-        if (depth > MAX_DEPTH) depth = MAX_DEPTH;
-        this.depth = depth;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public void setLabel(String label) {
-        this.label = label;
-    }
-
-    public LabelShape getLabelShape() {
-        return labelShape;
-    }
-
-    public void setLabelShape(LabelShape labelShape) {
-        this.labelShape = labelShape;
-    }
-
-    public Color getLabelColor() {
-        return labelColor;
-    }
-
-    public void setLabelColor(Color labelColor) {
-        this.labelColor = labelColor;
-    }
-
-    public int getFontSize() {
-        return fontSize;
-    }
-
-    public void setFontSize(int fontSize) {
-        this.fontSize = fontSize;
-    }
-
-    public void setShowPorts(boolean show) {
-        this.showPorts = show;
-    }
-
-    public boolean isShowPorts() {
-        return showPorts;
-    }
-
-
-    /**
-     * 繪製物件，具體的繪製方法由子類別實作。
-     *
-     * @param g Graphics 物件
-     */
-    public abstract void draw(Graphics g);
-
-    /**
-     * 取得物件連線使用的端口點，具體實現由子類別定義。
-     *
-     * @return 端口點陣列
-     */
-    public abstract Point[] getPorts();
-
-    /**
-     * 判斷給定的點是否位於物件內。
-     *
-     * @param p 檢查點
-     * @return 若點在物件內則回傳 true，否則回傳 false
+     * 判斷點是否在此物件範圍內
      */
     public boolean contains(Point p) {
         return (p.x >= x && p.x <= x + width && p.y >= y && p.y <= y + height);
     }
 
     /**
-     * 根據給定的參考點 p，找出與其距離最近的端口點。
-     *
-     * @param p 參考點
-     * @return 與 p 距離最短的端口點
+     * 繪製物件，由子類別實作
+     */
+    public abstract void draw(Graphics g);
+
+    /**
+     * 取得此物件的連線端口，由子類別定義
+     */
+    public abstract Point[] getPorts();
+
+    /**
+     * 取得與參考點距離最近的端口
      */
     public Point getClosestPort(Point p) {
         Point[] ports = getPorts();

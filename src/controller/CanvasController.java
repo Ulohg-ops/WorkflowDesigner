@@ -14,7 +14,9 @@ import java.util.Map;
 
 /**
  * CanvasController 負責處理 Canvas 上的滑鼠事件，
- * 像是物件的建立、連線拖曳、選取與群組/解群組操作。
+ * 包括物件的建立、連線拖曳、選取與群組/解群組操作。
+ * 重構後 BasicObject 與 LinkObject 均繼承自共用父類別 DisplayObject，
+ * 因此 depth 的管理統一且點選不再改變 depth。
  */
 public class CanvasController extends MouseAdapter implements MouseMotionListener {
     private ToolPanel toolPanel;
@@ -28,29 +30,17 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
 
     private Point selectionStart = null;
     private Point selectionEnd = null;
-    private boolean isGroupDragging = false; // 拖曳時一個也當作是Group
+    private boolean isGroupDragging = false; // 拖曳時一個也當作是 Group
     private Point groupDragStartPoint = null;
-
-    // 群組拖曳時記錄每個選取物件的起始位置，拖曳時可以根據這個計算每個物件的新位置
+    // 群組拖曳時記錄每個選取物件的起始位置
     private Map<BasicObject, Point> initialPositions = new HashMap<>();
 
-    /**
-     * 建構子，初始化控制器，並綁定工具面板、模型與畫布。
-     *
-     * @param toolPanel 工具面板
-     * @param model     畫布模型，包含所有物件和連線
-     * @param canvas    畫布視圖，負責繪製物件
-     */
     public CanvasController(ToolPanel toolPanel, CanvasModel model, Canvas canvas) {
         this.toolPanel = toolPanel;
         this.model = model;
         this.canvas = canvas;
     }
 
-    /**
-     * 處理滑鼠按下事件：
-     * 根據目前的模式來建立物件、開始連線拖曳或開始選取操作。
-     */
     @Override
     public void mousePressed(MouseEvent e) {
         Mode mode = toolPanel.getCurrentMode();
@@ -82,10 +72,6 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
         }
     }
 
-    /**
-     * 處理滑鼠放開事件：
-     * 根據模式結束連線拖曳或完成選取操作。
-     */
     @Override
     public void mouseReleased(MouseEvent e) {
         Mode mode = toolPanel.getCurrentMode();
@@ -96,7 +82,6 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
                 endLinkDragging(e);
                 break;
             case SELECT:
-                // 完成選取操作或群組拖曳後更新物件與連線
                 handleSelectReleased(e);
                 break;
             default:
@@ -104,10 +89,6 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
         }
     }
 
-    /**
-     * 處理滑鼠拖曳事件：
-     * 根據模式更新連線的拖曳位置或移動選取物件/選取矩形。
-     */
     @Override
     public void mouseDragged(MouseEvent e) {
         Mode mode = toolPanel.getCurrentMode();
@@ -128,15 +109,11 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
         }
     }
 
-    /**
-     * 處理滑鼠移動事件：
-     * 在連線模式下，當滑鼠移到某物件上時顯示其連線端口。
-     */
     @Override
     public void mouseMoved(MouseEvent e) {
         Mode mode = toolPanel.getCurrentMode();
         if (mode == Mode.ASSOCIATION || mode == Mode.GENERALIZATION || mode == Mode.COMPOSITION) {
-            // 找出滑鼠位置下的物件，僅顯示該物件的連線端口
+            // 顯示滑鼠所在物件的連線端口
             BasicObject hovered = findObjectAt(e.getPoint());
             for (BasicObject obj : model.getObjects()) {
                 obj.setShowPorts(obj == hovered);
@@ -146,9 +123,7 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
     }
 
     /**
-     * 開始連線拖曳：當滑鼠按下時，如果指向一個物件，則記錄連線起點及其端口位置。
-     *
-     * @param e 滑鼠事件
+     * 開始連線拖曳：若滑鼠點到某物件，則記錄連線起點及其端口位置。
      */
     private void startLinkDragging(MouseEvent e) {
         BasicObject startObj = findObjectAt(e.getPoint());
@@ -161,14 +136,12 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
     }
 
     /**
-     * 結束連線拖曳：如果滑鼠放開時位於另一個物件上，則建立相對應的連線物件。
-     *
-     * @param e 滑鼠事件
+     * 結束連線拖曳：若滑鼠放開時位於另一個物件上，則建立對應連線物件，
+     * 連線的 depth 由 LinkObject 自行根據所連物件重新計算。
      */
     private void endLinkDragging(MouseEvent e) {
         if (isLinkDragging) {
             BasicObject endObj = findObjectAt(e.getPoint());
-            // 確保結束物件存在且與起始物件不同
             if (endObj != null && endObj != linkStartObject) {
                 Point endPort = endObj.getClosestPort(e.getPoint());
                 Mode mode = toolPanel.getCurrentMode();
@@ -187,12 +160,9 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
                         break;
                 }
                 if (link != null) {
-                    // 設定連線的 depth，確保連線比兩物件更上層
-                    link.setDepth(Math.min(linkStartObject.getDepth(), endObj.getDepth()) - 1);
                     model.getLinks().add(link);
                 }
             }
-            // 重置連線拖曳相關變數
             isLinkDragging = false;
             linkStartObject = null;
             linkStartPoint = null;
@@ -203,9 +173,8 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
 
     /**
      * 處理選取按下事件：
-     * 若點選到物件，則清除先前選取並選取此物件；否則開始建立選取矩形。
-     *
-     * @param e 滑鼠事件
+     * - 點到物件時：清除原先選取並選取該物件；若已選取則開始群組拖曳。
+     * - 沒點到物件時：開始建立選取矩形。
      */
     private void handleSelectPressed(MouseEvent e) {
         BasicObject clickedObj = findObjectAt(e.getPoint());
@@ -213,6 +182,7 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
 
         if (clickedObj != null) {
             if (selectedObjects.contains(clickedObj)) {
+                // 已選取狀態，開始群組拖曳
                 isGroupDragging = true;
                 groupDragStartPoint = e.getPoint();
                 initialPositions.clear();
@@ -220,12 +190,11 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
                     initialPositions.put(obj, new Point(obj.getX(), obj.getY()));
                 }
             } else {
-                // 清除之前的選取狀態
+                // 清除先前選取，再選取新的物件
                 selectedObjects.clear();
                 for (BasicObject obj : model.getObjects()) {
                     obj.setShowPorts(false);
                 }
-                // 選取新的物件
                 selectedObjects.add(clickedObj);
                 clickedObj.setShowPorts(true);
 
@@ -234,11 +203,11 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
                 initialPositions.clear();
                 initialPositions.put(clickedObj, new Point(clickedObj.getX(), clickedObj.getY()));
             }
-
             selectionStart = null;
             selectionEnd = null;
             canvas.repaint();
         } else {
+            // 點空白處：開始建立選取矩形，並清除所有物件的連線端口顯示
             for (BasicObject obj : model.getObjects()) {
                 obj.setShowPorts(false);
             }
@@ -251,15 +220,13 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
 
     /**
      * 處理選取放開事件：
-     * - 若進行群組拖曳，則更新被移動物件的連線位置。
-     * - 否則，根據選取矩形選取位於該區域內的物件，並更新連線深度。
-     *
-     * @param e 滑鼠事件
+     * - 若是群組拖曳，則更新被移動物件的連線位置；
+     * - 若是選取矩形，則根據矩形選取物件，但不改變 depth。
      */
     private void handleSelectReleased(MouseEvent e) {
         List<BasicObject> selectedObjects = model.getSelectedObjects();
         if (isGroupDragging) {
-            // 群組拖曳結束後，更新所有被選取物件的連線位置
+            // 群組拖曳結束後更新所有被選取物件的連線位置
             for (BasicObject obj : selectedObjects) {
                 updateLinksForObject(obj);
             }
@@ -267,7 +234,6 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
             initialPositions.clear();
             canvas.repaint();
         } else if (selectionStart != null && selectionEnd != null) {
-            // 建立選取矩形，根據矩形範圍選取物件
             Rectangle selectionRect = new Rectangle(
                     Math.min(selectionStart.x, selectionEnd.x),
                     Math.min(selectionStart.y, selectionEnd.y),
@@ -275,32 +241,18 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
                     Math.abs(selectionStart.y - selectionEnd.y)
             );
             selectedObjects.clear();
-            boolean anySelected = false;
-            // 判斷每個物件是否完全落在選取矩形中
             for (BasicObject obj : model.getObjects()) {
                 Rectangle objRect = new Rectangle(obj.getX(), obj.getY(), obj.getWidth(), obj.getHeight());
                 if (selectionRect.contains(objRect)) {
                     obj.setShowPorts(true);
                     selectedObjects.add(obj);
-                    anySelected = true;
-                    // 將選取物件的 depth 設為 -1，使其顯示在最上層
-                    obj.setDepth(-1);
                 } else {
                     obj.setShowPorts(false);
-                    // 更新所有未選取物件的 depth，確保它們位於較低層
-                    obj.setDepth(BasicObject.getNextDepth());
-                }
-            }
-            if (!anySelected) {
-                // 若沒有物件被選取，則清除所有物件的選取狀態並更新深度
-                for (BasicObject obj : model.getObjects()) {
-                    obj.setShowPorts(false);
-                    obj.setDepth(BasicObject.getNextDepth());
                 }
             }
             selectionStart = null;
             selectionEnd = null;
-            // 更新所有連線的深度
+            // 更新所有連線的 depth（由 LinkObject 自行依照連接物件 recalculates）
             for (LinkObject link : model.getLinks()) {
                 link.reCalcDepth();
             }
@@ -310,10 +262,8 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
 
     /**
      * 處理選取拖曳事件：
-     * - 若正在群組拖曳，則移動選取物件並更新連線位置。
-     * - 否則，更新選取矩形的結束點，並重繪選取框。
-     *
-     * @param e 滑鼠事件
+     * - 若為群組拖曳，則移動選取物件並更新連線位置；
+     * - 否則更新選取矩形。
      */
     private void handleSelectDragged(MouseEvent e) {
         List<BasicObject> selectedObjects = model.getSelectedObjects();
@@ -325,7 +275,6 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
                 if (obj instanceof CompositeObject) {
                     ((CompositeObject) obj).moveBy(deltaX, deltaY);
                 } else {
-                    // 若不是群組物件，直接更新位置
                     obj.setX(obj.getX() + deltaX);
                     obj.setY(obj.getY() + deltaY);
                 }
@@ -340,10 +289,7 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
     }
 
     /**
-     * 在給定點 p 處找出最上層（depth 最小）的物件。
-     *
-     * @param p 檢查點
-     * @return 該點所在的物件，若無則回傳 null
+     * 在給定點 p 處找出 depth 最小（最上層）的物件
      */
     private BasicObject findObjectAt(Point p) {
         List<BasicObject> hitObjects = new ArrayList<>();
@@ -355,17 +301,14 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
         if (hitObjects.isEmpty()) {
             return null;
         }
-        // 根據 depth 升序排序，depth 較小者（例如 -1）代表較上層
+        // 依 depth 升序排序（depth 較小者在上層）
         hitObjects.sort((o1, o2) -> Integer.compare(o1.getDepth(), o2.getDepth()));
         return hitObjects.get(0);
     }
 
     /**
      * 更新與指定物件相關的連線端點位置，
-     * 根據該物件的新位置和原始偏移量重新計算連線端點，
-     * 並重新計算連線的 depth。
-     *
-     * @param movedObj 被移動的物件
+     * 根據物件新位置及原始偏移量重新計算連線端點，並重新計算連線 depth。
      */
     private void updateLinksForObject(BasicObject movedObj) {
         for (LinkObject link : model.getLinks()) {
@@ -383,17 +326,14 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
                 );
                 link.setEndPort(newEndPort);
             }
-            // 更新連線深度
             link.reCalcDepth();
         }
     }
 
     /**
-     * 繪製額外的輔助線：
-     * - 在連線拖曳時，繪製橡皮筋線。
-     * - 在選取模式下，繪製選取矩形。
-     *
-     * @param g Graphics 物件
+     * 繪製額外輔助線：
+     * - 連線拖曳時繪製橡皮筋線
+     * - 選取模式下繪製選取矩形
      */
     public void drawAdditionalGuides(Graphics g) {
         if (isLinkDragging && linkStartPoint != null && currentDragPoint != null) {
@@ -420,9 +360,7 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
             model.getObjects().removeAll(selected);
 
             CompositeObject composite = new CompositeObject(newChildren);
-
             model.getObjects().add(composite);
-
 
             selected.clear();
             composite.setShowPorts(true);
@@ -432,9 +370,8 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
         }
     }
 
-
     /**
-     * 將被群組的 CompositeObject 解散，將其中的子物件恢復為獨立物件，
+     * 將群組的 CompositeObject 解散，將其中子物件恢復為獨立物件，
      * 並移除與該 composite 相關的連線。
      */
     public void ungroupSelectedObject() {
