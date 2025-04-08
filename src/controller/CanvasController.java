@@ -123,11 +123,23 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
     }
 
     /**
-     * 開始連線拖曳：若滑鼠點到某物件，則記錄連線起點及其端口位置。
+     * 開始連線拖曳：
+     * 當滑鼠點到某物件時，先檢查若為 CompositeObject，嘗試從中選取可連線的 BasicObject。
+     * 若找不到，就取消連線操作。
      */
     private void startLinkDragging(MouseEvent e) {
         BasicObject startObj = findObjectAt(e.getPoint());
         if (startObj != null) {
+            // 若點到的是群組，嘗試取得其中可連線的 BasicObject
+            if (startObj instanceof CompositeObject) {
+                BasicObject child = ((CompositeObject) startObj).getConnectableChild();
+                if (child != null) {
+                    startObj = child;
+                } else {
+                    // 若群組內無可連線物件（本例永遠返回 null），則取消連線動作
+                    return;
+                }
+            }
             linkStartObject = startObj;
             linkStartPoint = startObj.getClosestPort(e.getPoint());
             isLinkDragging = true;
@@ -136,31 +148,49 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
     }
 
     /**
-     * 結束連線拖曳：若滑鼠放開時位於另一個物件上，則建立對應連線物件，
-     * 連線的 depth 由 LinkObject 自行根據所連物件重新計算。
+     * 結束連線拖曳：
+     * 當滑鼠放開時，檢查結束物件，若為 CompositeObject，
+     * 嘗試從中取得可連線的 BasicObject，否則取消連線。
      */
     private void endLinkDragging(MouseEvent e) {
         if (isLinkDragging) {
             BasicObject endObj = findObjectAt(e.getPoint());
-            if (endObj != null && endObj != linkStartObject) {
-                Point endPort = endObj.getClosestPort(e.getPoint());
-                Mode mode = toolPanel.getCurrentMode();
-                LinkObject link = null;
-                switch (mode) {
-                    case ASSOCIATION:
-                        link = new AssociationLink(linkStartObject, endObj, linkStartPoint, endPort);
-                        break;
-                    case GENERALIZATION:
-                        link = new GeneralizationLink(linkStartObject, endObj, linkStartPoint, endPort);
-                        break;
-                    case COMPOSITION:
-                        link = new CompositionLink(linkStartObject, endObj, linkStartPoint, endPort);
-                        break;
-                    default:
-                        break;
+            if (endObj != null) {
+                // 若結束物件為群組，試著從中取得可連線的 BasicObject
+                if (endObj instanceof CompositeObject) {
+                    BasicObject child = ((CompositeObject) endObj).getConnectableChild();
+                    if (child != null) {
+                        endObj = child;
+                    } else {
+                        // 若無可連線子物件則取消連線建立
+                        isLinkDragging = false;
+                        linkStartObject = null;
+                        linkStartPoint = null;
+                        currentDragPoint = null;
+                        canvas.repaint();
+                        return;
+                    }
                 }
-                if (link != null) {
-                    model.getLinks().add(link);
+                if (endObj != linkStartObject) {
+                    Point endPort = endObj.getClosestPort(e.getPoint());
+                    Mode mode = toolPanel.getCurrentMode();
+                    LinkObject link = null;
+                    switch (mode) {
+                        case ASSOCIATION:
+                            link = new AssociationLink(linkStartObject, endObj, linkStartPoint, endPort);
+                            break;
+                        case GENERALIZATION:
+                            link = new GeneralizationLink(linkStartObject, endObj, linkStartPoint, endPort);
+                            break;
+                        case COMPOSITION:
+                            link = new CompositionLink(linkStartObject, endObj, linkStartPoint, endPort);
+                            break;
+                        default:
+                            break;
+                    }
+                    if (link != null) {
+                        model.getLinks().add(link);
+                    }
                 }
             }
             isLinkDragging = false;
