@@ -21,6 +21,8 @@ import controller.strategy.RectModeStrategy;
 import controller.strategy.OvalModeStrategy;
 import controller.strategy.NullStrategy;
 
+// 原本所有邏輯如 startLinkDragging, handleSelectPressed，都由 CanvasController 持有並管理。
+// 但套用 strategy pattern 每個 mode 拆成一個 class，才符合 SRP
 public class CanvasController extends MouseAdapter implements MouseMotionListener {
     private ToolPanel toolPanel;
     private CanvasModel model;
@@ -48,7 +50,8 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
     }
 
     private void initStrategies() {
-        strategyMap.put(Mode.SELECT, new SelectModeStrategy(this));
+    	// 每新增一種 case 就要加進去
+    	strategyMap.put(Mode.SELECT, new SelectModeStrategy(this));
         strategyMap.put(Mode.ASSOCIATION, new AssociationModeStrategy(this));
         strategyMap.put(Mode.GENERALIZATION, new GeneralizationModeStrategy(this));
         strategyMap.put(Mode.COMPOSITION, new CompositionModeStrategy(this));
@@ -62,7 +65,16 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
     }
 
     @Override
-    public void mousePressed(MouseEvent e) {
+    public void mousePressed(MouseEvent e) {    	
+// 		原本每新增一個 mode 都要新增一個 case 而且是 所有 event 都要寫
+//    	public void mousePressed(MouseEvent e) {
+//    	    Mode mode = toolPanel.getCurrentMode();
+//    	    switch (mode) {
+//    	        case RECT: ...
+//    	        case ASSOCIATION: ...
+//    	        case SELECT: ...
+//    	    }
+//    	}
         updateCurrentStrategy();
         currentStrategy.mousePressed(e);
     }
@@ -150,6 +162,10 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
         return model;
     }
 
+    /*
+     *    友善設計 :D 
+     *    拖曳線的時候 hover 會顯示 port 
+     */
     public void handleHoveringObjectPort(MouseEvent e) {
         BasicObject hovered = findObjectAt(e.getPoint());
         for (BasicObject obj : model.getObjects()) {
@@ -158,6 +174,10 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
         canvas.repaint();
     }
 
+    /*
+     *     有點到物件：處理單一選取或群組拖曳準備
+     *     沒點到物件 : 開始建立 selected Area 
+     */
     public void handleSelectPressed(MouseEvent e) {
         BasicObject clickedObj = findObjectAt(e.getPoint());
         List<BasicObject> selectedObjects = model.getSelectedObjects();
@@ -200,6 +220,7 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
     public void handleSelectReleased(MouseEvent e) {
         List<BasicObject> selectedObjects = model.getSelectedObjects();
         if (isGroupDragging) {
+        	// 拖曳動作結束後更新連線位置（例如線的起點終點跟著移動）
             for (BasicObject obj : selectedObjects) {
                 updateLinksForObject(obj);
             }
@@ -207,6 +228,7 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
             initialPositions.clear();
             canvas.repaint();
         } else if (selectionStart != null && selectionEnd != null) {
+        	// selected Area 內所有物件都顯示 port
             Rectangle selectionRect = new Rectangle(
                 Math.min(selectionStart.x, selectionEnd.x),
                 Math.min(selectionStart.y, selectionEnd.y),
@@ -225,7 +247,7 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
             }
             selectionStart = null;
             selectionEnd = null;
-            for (LinkObject link : model.getLinks()) {
+            for (LinkObject link : model.getLinks(	)) {
                 link.reCalcDepth();
             }
             canvas.repaint();
