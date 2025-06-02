@@ -296,23 +296,29 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
 
     public void ungroupSelectedObject() {
         List<BasicObject> selected = model.getSelectedObjects();
-        if (selected.size() == 1 && selected.get(0) instanceof CompositeObject) {
-            CompositeObject composite = (CompositeObject) selected.get(0);
-            model.getObjects().remove(composite);
+        if (selected.size() == 1 && selected.get(0).isGroup()) {
+            BasicObject group = selected.get(0);
+            model.getObjects().remove(group);
+            
             List<LinkObject> linksToRemove = new ArrayList<>();
             for (LinkObject link : model.getLinks()) {
-                if (link.getStartObject() == composite || link.getEndObject() == composite) {
+                if (link.getStartObject() == group || link.getEndObject() == group) {
                     linksToRemove.add(link);
                 }
             }
             model.getLinks().removeAll(linksToRemove);
-            List<BasicObject> children = composite.getChildren();
+
+            
+            List<BasicObject> children = new ArrayList<>();
+            group.ungroupTo(children);
             model.getObjects().addAll(children);
+
             selected.clear();
             for (BasicObject child : children) {
                 child.setShowPorts(true);
                 selected.add(child);
             }
+
             canvas.repaint();
         }
     }

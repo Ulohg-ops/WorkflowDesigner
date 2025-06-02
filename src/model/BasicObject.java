@@ -1,6 +1,9 @@
 package model;
 
 import enums.LabelShape;
+import java.util.List;
+import java.util.Collections;
+
 import java.awt.*;
 
 public abstract class BasicObject extends DisplayObject {
@@ -85,4 +88,16 @@ public abstract class BasicObject extends DisplayObject {
         }
         return closest;
     }
+    
+    public boolean isGroup() {
+        return false;
+    }
+
+    public List<BasicObject> getChildren() {
+        return Collections.emptyList();
+    }
+
+    public void ungroupTo(List<BasicObject> output) {
+    }
+
 }

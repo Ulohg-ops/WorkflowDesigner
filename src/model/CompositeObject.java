@@ -46,10 +46,6 @@ public class CompositeObject extends BasicObject {
         setHeight(maxY - minY);
     }
 
-    public List<BasicObject> getChildren() {
-        return children;
-    }
-
     /**
      * 繪製群組：先畫群組邊框，再依序繪製各子物件（避免重複顯示連接埠）
      */
@@ -111,4 +107,22 @@ public class CompositeObject extends BasicObject {
         }
         updateBounds();
     }
+    
+    
+    @Override
+    public boolean isGroup() {
+        return true;
+    }
+
+    @Override
+    public List<BasicObject> getChildren() {
+        return children;
+    }
+
+
+    @Override
+    public void ungroupTo(List<BasicObject> output) {
+        output.addAll(children);
+    }
+
 }
