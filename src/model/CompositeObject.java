@@ -98,16 +98,10 @@ public class CompositeObject extends BasicObject {
      */
     public void moveBy(int dx, int dy) {
         for (BasicObject child : children) {
-            if (child instanceof CompositeObject) {
-                ((CompositeObject) child).moveBy(dx, dy);
-            } else {
-                child.setX(child.getX() + dx);
-                child.setY(child.getY() + dy);
-            }
+            child.moveBy(dx, dy);
         }
         updateBounds();
     }
-    
     
     @Override
     public boolean isGroup() {
