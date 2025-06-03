@@ -25,6 +25,7 @@ public class CompositionModeStrategy implements CanvasMouseStrategy {
     public void mouseDragged(MouseEvent e) {
         if (controller.isLinkDragging()) {
             controller.setCurrentDragPoint(e.getPoint());
+            // 終點會隨著滑鼠移動更新
             controller.getCanvas().repaint();
         }
     }

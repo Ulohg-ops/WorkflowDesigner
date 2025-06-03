@@ -44,7 +44,7 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
 
     public CanvasController(ToolPanel toolPanel, CanvasModel model, Canvas canvas) {
         this.toolPanel = toolPanel;
-        this.model = model;
+        this.model = CanvasModel.getInstance();
         this.canvas = canvas;
         initStrategies();
     }
@@ -65,7 +65,7 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
     }
 
     @Override
-    public void mousePressed(MouseEvent e) {    	
+    public void mousePressed(MouseEvent e) {
 // 		原本每新增一個 mode 都要新增一個 case 而且是 所有 event 都要寫
 //    	public void mousePressed(MouseEvent e) {
 //    	    Mode mode = toolPanel.getCurrentMode();
@@ -163,8 +163,7 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
     }
 
     /*
-     *    友善設計 :D 
-     *    拖曳線的時候 hover 會顯示 port 
+     *    友善設計 :D 拖曳線的時候 hover 會顯示 port 
      */
     public void handleHoveringObjectPort(MouseEvent e) {
         BasicObject hovered = findObjectAt(e.getPoint());
@@ -220,10 +219,6 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
     public void handleSelectReleased(MouseEvent e) {
         List<BasicObject> selectedObjects = model.getSelectedObjects();
         if (isGroupDragging) {
-        	// 拖曳動作結束後更新連線位置（例如線的起點終點跟著移動）
-            for (BasicObject obj : selectedObjects) {
-                updateLinksForObject(obj);
-            }
             isGroupDragging = false;
             initialPositions.clear();
             canvas.repaint();
@@ -267,7 +262,6 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
                     obj.setX(obj.getX() + deltaX);
                     obj.setY(obj.getY() + deltaY);
                 }
-                updateLinksForObject(obj);
             }
             groupDragStartPoint = e.getPoint();
             canvas.repaint();
@@ -300,17 +294,8 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
             BasicObject group = selected.get(0);
             model.getObjects().remove(group);
             
-            List<LinkObject> linksToRemove = new ArrayList<>();
-            for (LinkObject link : model.getLinks()) {
-                if (link.getStartObject() == group || link.getEndObject() == group) {
-                    linksToRemove.add(link);
-                }
-            }
-            model.getLinks().removeAll(linksToRemove);
-
-            
             List<BasicObject> children = new ArrayList<>();
-            group.ungroupTo(children);
+            group.ungroupTo(children);  // dynamic dispatch : 會去呼叫 compositeObject 的 ungroupTo
             model.getObjects().addAll(children);
 
             selected.clear();
@@ -355,23 +340,4 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
         return hitObjects.get(0);
     }
 
-    private void updateLinksForObject(BasicObject movedObj) {
-        for (LinkObject link : model.getLinks()) {
-            if (link.getStartObject() == movedObj) {
-                Point newStartPort = new Point(
-                    movedObj.getX() + link.getStartPortOffsetX(),
-                    movedObj.getY() + link.getStartPortOffsetY()
-                );
-                link.setStartPort(newStartPort);
-            }
-            if (link.getEndObject() == movedObj) {
-                Point newEndPort = new Point(
-                    movedObj.getX() + link.getEndPortOffsetX(),
-                    movedObj.getY() + link.getEndPortOffsetY()
-                );
-                link.setEndPort(newEndPort);
-            }
-            link.reCalcDepth();
-        }
-    }
 }

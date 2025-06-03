@@ -9,6 +9,9 @@ import java.util.List;
  * 方便其他元件 (例如畫布視圖或控制器) 進行資料操作。
  */
 public class CanvasModel {
+	
+    private static CanvasModel instance = null; //用 singleton pattern，只有在第一次 getInstance 被呼叫的時候才會建立物件
+
     // 儲存所有在畫布上繪製的 BasicObject 物件
     private List<BasicObject> objects;
 
@@ -18,14 +21,20 @@ public class CanvasModel {
     // 儲存目前被選取的 BasicObject 物件
     private List<BasicObject> selectedObjects;
 
-    /**
-     * 建構子：初始化 CanvasModel，
-     * 建立空的集合以儲存物件、連線以及被選取物件。
-     */
-    public CanvasModel() {
-        this.objects = new ArrayList<>();
-        this.links = new ArrayList<>();
-        this.selectedObjects = new ArrayList<>();
+    
+    // 私有 constructor，禁止外部 new 
+    private CanvasModel() {
+        objects = new ArrayList<>();
+        links = new ArrayList<>();
+        selectedObjects = new ArrayList<>();
+    }
+
+    
+    public static CanvasModel getInstance() {
+        if (instance == null) {
+            instance = new CanvasModel();
+        }
+        return instance;
     }
 
     /**

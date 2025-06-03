@@ -27,7 +27,7 @@ public class MainFrame extends JFrame {
         toolPanel = new ToolPanel();
         add(toolPanel, BorderLayout.WEST);
 
-        CanvasModel model = new CanvasModel();
+        CanvasModel model = CanvasModel.getInstance();
 
         canvas = new Canvas(toolPanel, model);
         add(canvas, BorderLayout.CENTER);
@@ -86,7 +86,7 @@ public class MainFrame extends JFrame {
             } else {
                 JOptionPane.showMessageDialog(
                         MainFrame.this,
-                        "請先選取一個物件",
+                        "只能選取一個物件",
                         "提示",
                         JOptionPane.INFORMATION_MESSAGE
                 );
