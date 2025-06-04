@@ -10,14 +10,6 @@ import java.awt.*;
  */
 public class RectObject extends BasicObject {
 
-    /**
-     * 建構子：根據傳入的 x、y、width 與 height 初始化矩形物件。
-     *
-     * @param x      矩形左上角的 x 座標
-     * @param y      矩形左上角的 y 座標
-     * @param width  矩形的寬度
-     * @param height 矩形的高度
-     */
     public RectObject(int x, int y, int width, int height) {
         super(x, y, width, height);
     }

@@ -37,7 +37,7 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
     private Point selectionEnd = null;
     private boolean isGroupDragging = false;
     private Point groupDragStartPoint = null;
-    private Map<BasicObject, Point> initialPositions = new HashMap<>();
+    private Map<BasicObject, Point> initialPositions = new HashMap<>(); // 記錄拖曳時各個物件原本位置
 
     private Map<Mode, CanvasMouseStrategy> strategyMap = new HashMap<>();
     private CanvasMouseStrategy currentStrategy = new NullStrategy();
@@ -252,6 +252,7 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
     public void handleSelectDragged(MouseEvent e) {
         List<BasicObject> selectedObjects = model.getSelectedObjects();
         if (isGroupDragging) {
+        	// 用相對位移之後若要加上 undo 功能會比較方便，但其實也可以直接用絕對座標
             int deltaX = e.getX() - groupDragStartPoint.x;
             int deltaY = e.getY() - groupDragStartPoint.y;
             for (BasicObject child : selectedObjects) {

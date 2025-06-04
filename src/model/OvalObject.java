@@ -9,14 +9,6 @@ import java.awt.*;
  */
 public class OvalObject extends BasicObject {
 
-    /**
-     * 建構子：初始化橢圓物件的位置與尺寸。
-     *
-     * @param x      橢圓的 x 座標
-     * @param y      橢圓的 y 座標
-     * @param width  橢圓的寬度
-     * @param height 橢圓的高度
-     */
     public OvalObject(int x, int y, int width, int height) {
         super(x, y, width, height);
     }
