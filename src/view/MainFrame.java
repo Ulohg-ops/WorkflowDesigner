@@ -101,12 +101,6 @@ public class MainFrame extends JFrame {
         return menuBar;
     }
 
-    /**
-     * 主方法：使用 SwingUtilities.invokeLater 來啟動 GUI 程式，
-     * 確保 GUI 相關操作在事件分派緒中執行。
-     *
-     * @param args 命令列參數
-     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             MainFrame frame = new MainFrame();
