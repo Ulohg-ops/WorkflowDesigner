@@ -21,8 +21,9 @@ import controller.strategy.RectModeStrategy;
 import controller.strategy.OvalModeStrategy;
 import controller.strategy.NullStrategy;
 
-// 原本所有邏輯如 startLinkDragging, handleSelectPressed，都由 CanvasController 持有並管理。
-// 但套用 strategy pattern 每個 mode 拆成一個 class，才符合 SRP
+//import factory.StrategyFactory;
+// 若要用 simple factory uncomment import
+
 public class CanvasController extends MouseAdapter implements MouseMotionListener {
     private ToolPanel toolPanel;
     private CanvasModel model;
@@ -38,8 +39,8 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
     private boolean isGroupDragging = false;
     private Point groupDragStartPoint = null;
     private Map<BasicObject, Point> initialPositions = new HashMap<>(); // 記錄拖曳時各個物件原本位置
-
     private Map<Mode, CanvasMouseStrategy> strategyMap = new HashMap<>();
+    
     private CanvasMouseStrategy currentStrategy = new NullStrategy();
 
     public CanvasController(ToolPanel toolPanel, CanvasModel model, Canvas canvas) {
@@ -47,8 +48,10 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
         this.model = CanvasModel.getInstance();
         this.canvas = canvas;
         initStrategies();
+
     }
 
+//    
     private void initStrategies() {
     	// 每新增一種 case 就要加進去
     	strategyMap.put(Mode.SELECT, new SelectModeStrategy(this));
@@ -62,8 +65,11 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
     private void updateCurrentStrategy() {
         Mode mode = toolPanel.getCurrentMode();
         this.currentStrategy = strategyMap.getOrDefault(mode, new NullStrategy());
-    }
+//        this.currentStrategy = StrategyFactory.createStrategy(mode, this); // for factory pattern
 
+    }
+  
+    
     @Override
     public void mousePressed(MouseEvent e) {
 // 		原本每新增一個 mode 都要新增一個 case 而且是 所有 event 都要寫

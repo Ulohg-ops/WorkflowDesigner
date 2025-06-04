@@ -65,6 +65,7 @@ public abstract class BasicObject extends DisplayObject {
     /**
      * 繪製物件，由子類別實作
      */
+    @Override
     public abstract void draw(Graphics g);
 
     /**

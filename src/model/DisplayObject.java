@@ -1,5 +1,7 @@
 package model;
 
+import java.awt.Graphics;
+
 public abstract class DisplayObject {
     protected static final int MIN_DEPTH = 0;
     protected static final int MAX_DEPTH = 99;
@@ -27,4 +29,7 @@ public abstract class DisplayObject {
         }
         this.depth = depth;
     }
+    
+    public abstract void draw(Graphics g);
+
 }

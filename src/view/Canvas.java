@@ -3,12 +3,14 @@ package view;
 import controller.CanvasController;
 import model.BasicObject;
 import model.CanvasModel;
+import model.DisplayObject;
 import model.LinkObject;
 
 import javax.swing.*;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -54,29 +56,21 @@ public class Canvas extends JPanel {
 	 */
 	@Override
 	protected void paintComponent(Graphics g) {
-		super.paintComponent(g);
+	    super.paintComponent(g);
 
-		List<Object> drawList = new ArrayList<>();
+	    List<DisplayObject> drawList = new ArrayList<>();
+	    drawList.addAll(model.getObjects());  // List<BasicObject> extends DisplayObject
+	    drawList.addAll(model.getLinks());    // List<LinkObject> extends DisplayObject
 
-		drawList.addAll(model.getObjects());
-		drawList.addAll(model.getLinks());
+	    drawList.sort(Comparator.comparingInt(DisplayObject::getDepth).reversed());
 
-		drawList.sort((o1, o2) -> {
-			int depth1 = (o1 instanceof BasicObject) ? ((BasicObject) o1).getDepth() : ((LinkObject) o1).getDepth();
-			int depth2 = (o2 instanceof BasicObject) ? ((BasicObject) o2).getDepth() : ((LinkObject) o2).getDepth();
-			return Integer.compare(depth2, depth1);
-		});
+	    for (DisplayObject obj : drawList) {
+	        obj.draw(g);
+	    }
 
-		for (Object obj : drawList) {
-			if (obj instanceof BasicObject) {
-				((BasicObject) obj).draw(g);
-			} else if (obj instanceof LinkObject) {
-				((LinkObject) obj).draw(g);
-			}
-		}
-
-		controller.drawAdditionalGuides(g);
+	    controller.drawAdditionalGuides(g);
 	}
+
 
 	/**
 	 * 將目前選取的物件進行群組化。
