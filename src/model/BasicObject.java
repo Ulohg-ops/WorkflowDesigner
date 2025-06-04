@@ -89,6 +89,11 @@ public abstract class BasicObject extends DisplayObject {
         return closest;
     }
     
+    public void moveBy(int dx, int dy) {
+        setX(getX() + dx);
+        setY(getY() + dy);
+    }
+
     public boolean isGroup() {
         return false;
     }

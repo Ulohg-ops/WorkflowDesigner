@@ -254,14 +254,8 @@ public class CanvasController extends MouseAdapter implements MouseMotionListene
         if (isGroupDragging) {
             int deltaX = e.getX() - groupDragStartPoint.x;
             int deltaY = e.getY() - groupDragStartPoint.y;
-
-            for (BasicObject obj : selectedObjects) {
-                if (obj instanceof CompositeObject) {
-                    ((CompositeObject) obj).moveBy(deltaX, deltaY);
-                } else {
-                    obj.setX(obj.getX() + deltaX);
-                    obj.setY(obj.getY() + deltaY);
-                }
+            for (BasicObject child : selectedObjects) {
+                child.moveBy(deltaX, deltaY);
             }
             groupDragStartPoint = e.getPoint();
             canvas.repaint();
